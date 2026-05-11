@@ -1,4 +1,4 @@
-Notite SQL:
+# SQL
 
 
 LAB 1 (GENERAL)
@@ -290,3 +290,43 @@ Tabelul angajati ulterior insert-ului:
 
 Vederea vedere1 ulterior insert-ului:
 ![alt text](image-3.png)
+
+# PL/SQL
+
+LAB 6 (PL/SQL)
+---
+
+Blocuri :
+```
+DECLARE
+    declaratii variabile
+BEGIN
+    cod program  --comentarii
+END
+```
+
+Exemplu:
+```
+DECLARE
+    x INTEGER;
+BEGIN
+    x := 1000;
+    DBMS_OUTPUT.PUT_LINE(x);
+END;
+```
+
+- `:=` operatie de atribuire
+- `DBMS_OUTPUT.PUT_LINE()` practic un print
+
+Functii:
+```
+CREATE [OR REPLACE] FUNCTION
+    nume_functie [(parametrii)]
+RETURN (tip_parametru_return)
+AS/IS
+    [declarare variabile interne functiei]
+BEGIN
+    cod
+END;
+
+```
