@@ -260,3 +260,33 @@ HAVING nvl(sum(B.Rata),0) = 0
 - CROSS JOIN :
     
     Fiecare linie cu fiecare linie
+
+LAB 5 (VEDERI)
+----
+
+```
+CREATE VIEW nume_vedere AS subquery;
+```
+- `subquery` reprezinta o interogare de tip `SELECT` (practic un `SELECT` facut pe unul sau mai multe tabele)
+
+Exemplu:
+```
+CREATE VIEW vedere1 AS  
+(SELECT * FROM angajati  
+   WHERE Cod_departament=’AIA’); 
+```
+
+---
+```
+SELECT * FROM vedere1;
+```
+
+```
+INSERT INTO vedere1 VALUES ('444', 'Anca', 2500, 'CTI');
+```
+
+Tabelul angajati ulterior insert-ului:
+![](image-2.png)
+
+Vederea vedere1 ulterior insert-ului:
+![alt text](image-3.png)
