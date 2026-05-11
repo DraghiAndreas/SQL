@@ -493,3 +493,141 @@ END
 
 LAB 8 (Triggere/Declansatoare)
 ---
+
+Structura: 
+```
+CREATE [OR REPLACE] TRIGGER nume_trigger
+[BEFORE/AFTER] eveniment_declansator ON tabela
+[REFERENCING {NEW AS new_row_name/ OLD as new_row_name}]
+[WHEN (expresie_conditionala)]
+[DECLARE]
+    sectiune declarativa optionala
+BEGIN
+    corp trigger
+[EXCEPTION]
+    tratarea exceptiei
+END;
+```
+STRUCTURA DE BAZA:
+```
+CREATE [OR REPLACE] TRIGGER nume_trigger
+{BEFORE/AFTER} {INSERT/UPDATE/DELETE} ON nume_tabela
+[FOR EACH ROW]
+[DECLARE]
+    variabile
+BEGIN;
+    corp
+END;
+```
+- BEFORE - Trigger-ul ruleaza inainte ca datele sa fie scrise in tabela
+- AFTER - Ruleaza dupa ce au fost scrise in tabela
+
+---
+
+`FOR EACH ROW`
+
+- Cu `FOR EACH ROW` se declanseaza o data per linie afectata
+- Fara `FOR EACH ROW` se declanseaza odata per comanda, indiferent cate linii afecteaza
+
+```
+UPDATE salarii SET nr_zile = 20 WHERE id IN (1,2,3)
+
+-- Cu FOR EACH ROW se declanseaza de 3 ori (pt fiecare ROW afectat de comanda)
+
+-- Fara FOR EACH ROW se declanseaza o singura data (o singura comanda data)
+```
+---
+
+`:OLD / :NEW`
+
+- Valori autonome, ce contin valorile liei afectate, un "snapshopt" al liniei inainte si dupa modificare (Se folosesc in corpul functiei)
+- Disponibile doar cu `FOR EACH ROW`
+
+Exemplu:
+```
+IF :NEW.pret_bucata < :OLD.pret_bucata THEN
+    :NEW.pret_bucata := :OLD.pret_bucata;
+    DBMS_OUTPUT.PUT_LINE('Scaderea pretului interzisa');
+END IF;
+```
+**TABEL**
+```
+INSERT:  :OLD = NULL      :NEW = valoarea inserata
+DELETE:  :OLD = val stearsa   :NEW = NULL
+UPDATE:  :OLD = val veche     :NEW = val noua
+```
+
+
+---
+`UPDATE OF coloana`
+
+```
+AFTER UPDATE OF nr_zile ON salarii
+```
+
+Trigger-ul se declanseaza doar cand se updateaza coloana nr_zile, nu la orice update pe tabela
+
+---
+**MUTATING TABLE**
+
+Apare cand trigger-ul incearca sa faca DML pe aceeasi tabela care l-a declansat
+
+```
+CREATE OR REPLACE TRIGGER tr
+AFTER INSERT ON tabela
+BEGIN
+    UPDATE tabela
+    SET ...
+END;
+```
+**Solutia**: Foloseste `BEFORE` + `FOR EACH ROW` si modifica direct prin `:NEW`
+
+```
+CREATE OR REPLACE TRIGGER tr
+BEFORE INSERT ON tabela
+BEGIN
+ :NEW.camp := val_noua;
+END;
+```
+---
+
+**Reguli**
+
+- Nu este posibila definirea unui trigger in urma unei operatii de `SELECT`
+- Nu se poate folosi comanda clasica de `SELECT` in corpul unui trigger (trebuie `SELECT ... INTO`)
+- Nu pot fi folositi parametri de intrare
+- La `DROP TABLE` se sterg automat si triggerele asociate (se poate si `DROP TRIGGER nume_trg`)
+
+---
+
+Exemple evenimente declansatoare:
+```
+BEFORE INSERT ON nume_tabela
+AFTER INSERT OR UPDATE OR DELETE ON numbe_tabela
+AFTER UPDATE OF coloana1, coloana2 ON nume_tabela
+```
+
+Merita notat ca un poate fi un singur trigger pt mai multe operatii. Caz in care poti diferentia cu
+
+- `INSERTING`
+- `UPDATING`
+- `DELETING`
+
+Exemplu:
+
+```
+CREATE OR REPLACE TRIGGER tr
+BEFORE INSERT OR UPDATE OR DELETE ON tabel
+FOR EACH ROW
+BEGIN
+    IF INSERTING THEN
+    ...
+
+    ELSIF UPDATING THEN
+    ...
+
+    ELSIF DELETING THEN
+    ...
+    END IF;
+END
+```
