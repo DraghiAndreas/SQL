@@ -293,7 +293,7 @@ Vederea vedere1 ulterior insert-ului:
 
 # PL/SQL
 
-LAB 6 (PL/SQL)
+LAB 6 (Blocuri/Functii)
 ---
 
 Blocuri :
@@ -326,7 +326,170 @@ RETURN (tip_parametru_return)
 AS/IS
     [declarare variabile interne functiei]
 BEGIN
-    cod
+    cod --comentariu
+    [EXCEPTION]
 END;
+```
+
+Rularea unei functii:
+
+- Printr-o comanda:
+```
+SELECT functie1(param1, param2..) FROM DUAL;
+```
+
+- Utilizata ca parte a unei expresii: 
+```
+SELECT * FROM tabel WHERE camp1 < functie1;
+
+-- SAU --
+
+SELECT camp1 + functie1 FROM tabel;
+```
+
+- In interiorul unui bloc:
 
 ```
+DECLARE
+    x INTEGER := 100;
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(functie1(x));
+END;
+```
+
+Exemplu Functie + Explicatie:
+
+```
+CREATE OR REPLACE FUNCTION Clasificare (nr integer) -- Creeaza/Updateaza functia Clasificare, care ia ca paramentru numit nr, de tip integer
+RETURN VARCHAR -- Tipul returnat de functie (nu trebuie mentionat VARCHAR(30), NUMBER(5,2),doar tipul)
+IS/AS -- inceperea blocului de declarat variabile interne functiei
+er EXCEPTION; --variabila interna, folosita pt exceptii
+BEGIN -- inceperea blocului de cod
+    IF (nr mod 2) = 0 THEN -- Classic if statement
+        RETURN 'Numar par';
+    ELSIF (nr mod 2) = 1 THEN
+        RETURN 'Numar impar';
+    ELSE
+        RAISE er; --ridica eroare (salt controlat pana la zona de EXCEPTION, unde cauta WHEN-ul pt EXCEPTION-ul respectiv, daca nu il gaseste, merge la WHEN OTHERS)
+    END IF;
+
+EXCEPTION
+WHEN er THEN
+    RETURN 'Parametru invalid!';
+WHEN OTHERS THEN
+    RETURN 'Eroare!';
+END;
+```
+
+Alt exemplu:
+
+```
+CREATE OR REPLACE FUNCTION operatii (var0 char, var1 number, var2 number)
+RETURN VARCHAR 
+IS
+    rez NUMBER;
+    ex EXCEPTION;
+BEGIN
+    IF (var0 = '+') THEN
+        rez := var1 + var2;
+        RETURN rez;
+    ELSIF (var0 = '-') THEN
+        rez := var1 - var2;
+        RETURN rez;
+    ELSIF (var0 = '*') THEN
+        rez := var1 * var2;
+        RETURN rez;
+    ELSIF (var0 = '/') THEN
+        rez := var1 / var2;
+        RETURN rez;
+    ELSE
+        raise ex;
+    END IF;
+
+    EXCEPTION
+        WHEN ex THEN
+            RETURN 'Operator invalid!';
+        WHEN ZERO_DIVIDE THEN
+            RETURN 'Cannot divide by 0';
+        WHEN OTHERS THEN
+            RETURN 'EROARE NECUNOSCUTA';
+END;
+```
+
+- `||` - operator pt concatanare string-uri in PL/SQL
+- `to_date(string, 'dd-mm-yy')` din string in date 
+
+**DATE DINTR UN TABEL IN FUNCTIE**
+```
+CREATE OR REPLACE FUNCTION func (var1 type)
+RETURN type
+AS/IS
+    outside_var NUMBER;
+BEGIN
+    SELECT var
+    INTO outside_var
+    FROM table
+    WHERE ___;
+
+    ...
+END;
+```
+
+LAB 7 (Proceduri)
+----
+Structura: 
+```
+CREATE [OR REPLACE] PROCEDURE
+    nume_procedura [(parametrii)]
+AS/IS
+    [declaratii variabile interne]
+BEGIN
+    corp procedura
+[EXCEPTION]
+    exceptii
+END
+```
+
+Apelul:
+```
+EXEC[UTE] nume_procedura(parametrii);
+```
+
+- Procedurile difera de functii prin faptul ca **NU RETURNEAZA VALORI** (**NU** pot fi direct in expresii)
+- `RETURN` e implicit, nu poate contine o expresie
+- Asemenea functiilor, nu poate fi stocata o interogare SQL clasica `SELECT`, poate fi folosita o comanda `SELECT ... INTO` spre una sau mai multe variabile
+- Sectiunea `EXCEPTION` e la fel (specifica functiilor, procedurilor, trigger elor, si oricarui bloc de cod PL/SQL)
+
+Exemplu:
+
+```
+CREATE OR REPLACE PROCEDURE afis(var varchar) AS
+BEGIN
+    DBMS_OUTPUT.PUT_LINE(var);
+END;
+```
+
+Apel:
+
+```
+EXEC afis ('test');
+
+-- SAU --
+
+DECLARE
+    var varchar(30) := 'test';
+BEGIN
+    afis(var);
+END;
+```
+
+- Din proceduri poti insera in tabele :
+```
+CREATE OR REPLACE PROCEDURE prod.. IS
+BEGIN
+    INSERT INTO table VALUES(val1, val2)...etc
+END
+```
+
+LAB 8 (Triggere/Declansatoare)
+---
